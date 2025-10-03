@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace PAW3.Core.BusinessLogic;
-
+//anmdrey asdjioejhtqewh
 public interface IProductBusiness
 {
     /// <summary>
@@ -16,7 +16,7 @@ public interface IProductBusiness
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    Task<bool> DeleteProductAsync(int id);
+    Task<bool> DeleteProductAsync(int id );
     /// <summary>
     /// 
     /// </summary>
