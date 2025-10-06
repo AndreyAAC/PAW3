@@ -1,0 +1,221 @@
+/* ===========================================================
+   ProductDB schema exactly as expected by your ProductDbContext
+   - Schema: dbo
+   - Table names: plural (from DbSet names)
+   - Column names/types per OnModelCreating
+   =========================================================== */
+
+IF DB_ID(N'ProductDB') IS NULL
+BEGIN
+    CREATE DATABASE [ProductDB];
+END
+GO
+
+USE [ProductDB];
+GO
+
+/* ---------------------------
+   Categories
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Categories', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Categories
+    (
+        CategoryID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Categori__19093A2B PRIMARY KEY,
+        CategoryName NVARCHAR(255) NULL,
+        Description NVARCHAR(1000) NULL,
+        LastModified DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   Components
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Components', N'U') IS NULL
+BEGIN
+    /* EF expects:
+       - Table: Components
+       - Id: numeric(18,0) ValueGeneratedOnAdd -> make it IDENTITY
+       - Name -> column "name" NVARCHAR(50)
+       - Content -> column "content" NVARCHAR(100)
+    */
+    CREATE TABLE dbo.Components
+    (
+        ID NUMERIC(18,0) IDENTITY(1,1) NOT NULL,
+        [name] NVARCHAR(50) NULL,
+        [content] NVARCHAR(100) NULL,
+        CONSTRAINT PK_Components PRIMARY KEY (ID)
+    );
+END
+GO
+
+/* ---------------------------
+   Inventories
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Inventories', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Inventories
+    (
+        InventoryID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Inventor__F5FDE6D3 PRIMARY KEY,
+        UnitPrice DECIMAL(10,2) NULL,
+        UnitsInStock INT NULL,
+        LastUpdated DATETIME NULL,
+        /* Your class includes these extra fields: */
+        DateAdded DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   Suppliers
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Suppliers', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Suppliers
+    (
+        SupplierID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Supplier__4BE66694 PRIMARY KEY,
+        SupplierName NVARCHAR(255) NULL,
+        ContactName NVARCHAR(255) NULL,
+        ContactTitle NVARCHAR(255) NULL,
+        Phone NVARCHAR(255) NULL,
+        [Address] NVARCHAR(1000) NULL,
+        City NVARCHAR(255) NULL,
+        Country NVARCHAR(255) NULL,
+        LastModified DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   Roles
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Roles', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Roles
+    (
+        RoleID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Roles__8AFACE3A PRIMARY KEY,
+        RoleName NVARCHAR(255) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   Users
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Users', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Users
+    (
+        UserID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Users__1788CCAC PRIMARY KEY,
+        Username NVARCHAR(255) NULL,
+        Email NVARCHAR(255) NULL,
+        PasswordHash NVARCHAR(255) NULL,
+        CreatedAt DATETIME NULL,
+        IsActive BIT NULL,
+        LastModified DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL,
+        RoleID INT NULL,
+        CONSTRAINT FK_Users_Role FOREIGN KEY (RoleID) REFERENCES dbo.Roles(RoleID)
+    );
+END
+GO
+
+/* ---------------------------
+   Notifications
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Notifications', N'U') IS NULL
+BEGIN
+    /* EF expects:
+       - Id column name = "id"
+       - created_at (datetime, default getdate())
+       - message NVARCHAR(255)
+       - is_read BIT default 0
+       - user_id INT FK -> Users(UserID)
+    */
+    CREATE TABLE dbo.Notifications
+    (
+        [id] INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Notifica__3213E83F PRIMARY KEY,
+        user_id INT NOT NULL,
+        [message] NVARCHAR(255) NOT NULL,
+        is_read BIT NULL CONSTRAINT DF_Notifications_is_read DEFAULT (0),
+        created_at DATETIME NULL CONSTRAINT DF_Notifications_created_at DEFAULT (GETDATE()),
+        CONSTRAINT FK_Notifications_Users FOREIGN KEY (user_id) REFERENCES dbo.Users(UserID)
+    );
+END
+GO
+
+/* ---------------------------
+   Products
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Products', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Products
+    (
+        ProductID INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Products__B40CC6ED PRIMARY KEY,
+        ProductName NVARCHAR(255) NULL,
+        InventoryID INT NULL,
+        SupplierID INT NULL,
+        [Description] NVARCHAR(1000) NULL,
+        Rating DECIMAL(3,2) NULL,
+        CategoryID INT NULL,
+        LastModified DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL,
+        CONSTRAINT FK_Products_Category FOREIGN KEY (CategoryID) REFERENCES dbo.Categories(CategoryID),
+        CONSTRAINT FK_Products_Inventory FOREIGN KEY (InventoryID) REFERENCES dbo.Inventories(InventoryID),
+        CONSTRAINT FK_Products_Supplier FOREIGN KEY (SupplierID) REFERENCES dbo.Suppliers(SupplierID)
+    );
+END
+GO
+
+/* ---------------------------
+   Tasks
+   --------------------------- */
+IF OBJECT_ID(N'dbo.Tasks', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Tasks
+    (
+        Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK__Tasks__3214EC07 PRIMARY KEY,
+        [Name] NVARCHAR(255) NULL,
+        [Description] NVARCHAR(1000) NULL,
+        [Status] NVARCHAR(50) NULL,
+        DueDate DATETIME NULL,
+        CreatedAt DATETIME NULL,
+        LastModified DATETIME NULL,
+        ModifiedBy NVARCHAR(255) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   UserActions  (HasNoKey in EF)
+   --------------------------- */
+IF OBJECT_ID(N'dbo.UserActions', N'U') IS NULL
+BEGIN
+    /* EF marks it as HasNoKey; we create a table without PK */
+    CREATE TABLE dbo.UserActions
+    (
+        Id NUMERIC(18,0) NULL,
+        [Name] VARCHAR(50) NULL,
+        [Description] VARCHAR(100) NULL
+    );
+END
+GO
+
+/* ---------------------------
+   UserRoles  (HasNoKey in EF)
+   --------------------------- */
+IF OBJECT_ID(N'dbo.UserRoles', N'U') IS NULL
+BEGIN
+    /* EF marks it as HasNoKey; note the property name is RoldID in your model */
+    CREATE TABLE dbo.UserRoles
+    (
+        Id NUMERIC(18,0) NULL,
+        RoldID NUMERIC(18,0) NULL,
+        UserID NUMERIC(18,0) NULL
+    );
+END
+GO

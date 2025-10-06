@@ -27,14 +27,23 @@ namespace PAW3.Api.Controllers
 
         // POST api/<ProductApiController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<bool> Post([FromBody] Product product)
         {
+            if (product is null)
+                return false;
+            return await productBusiness.SaveProductAsync(product);
         }
 
         // PUT api/<ProductApiController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<bool> Put(int id, [FromBody] Product product)
         {
+            if (product is null)
+                return false;
+
+            product.ProductId = id;
+
+            return await productBusiness.SaveProductAsync(product);
         }
 
         // DELETE api/<ProductApiController>/5

@@ -1,0 +1,166 @@
+USE [ProductDB];
+GO
+SET NOCOUNT ON;
+
+/* =========================
+   1) CATEGORIES (8)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Categories)
+BEGIN
+    INSERT INTO dbo.Categories (CategoryName, Description, LastModified, ModifiedBy)
+    VALUES
+    (N'Electronics', N'Phones, tablets, wearables and accessories', GETDATE(), N'Seeder'),
+    (N'Home Appliances', N'Kitchen and home electrical appliances', GETDATE(), N'Seeder'),
+    (N'Gaming', N'Consoles, accessories, and collectibles', GETDATE(), N'Seeder'),
+    (N'Sports', N'Fitness and outdoor sports equipment', GETDATE(), N'Seeder'),
+    (N'Books', N'Fiction, non-fiction and educational', GETDATE(), N'Seeder'),
+    (N'Beauty', N'Personal care and cosmetics', GETDATE(), N'Seeder'),
+    (N'Toys', N'Toys and kids education items', GETDATE(), N'Seeder'),
+    (N'Computers', N'PCs, laptops, components and peripherals', GETDATE(), N'Seeder');
+END
+GO
+
+/* =========================
+   2) SUPPLIERS (10)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Suppliers)
+BEGIN
+    INSERT INTO dbo.Suppliers
+    (SupplierName, ContactName, ContactTitle, Phone, [Address], City, Country, LastModified, ModifiedBy)
+    VALUES
+    (N'Nova Supply', N'Laura Chen', N'Account Manager', N'+1-202-555-0121', N'101 River Rd', N'Austin', N'USA', GETDATE(), N'Seeder'),
+    (N'BluePeak Trading', N'Carlos Ruiz', N'Sales Lead', N'+1-202-555-0122', N'55 Pine St', N'Miami', N'USA', GETDATE(), N'Seeder'),
+    (N'Orion Imports', N'Kim Park', N'Operations', N'+44-20-555-0123', N'10 Baker St', N'London', N'UK', GETDATE(), N'Seeder'),
+    (N'Solux Partners', N'Ana Souza', N'Key Accounts', N'+55-11-555-0124', N'Av Paulista 100', N'São Paulo', N'Brazil', GETDATE(), N'Seeder'),
+    (N'Glacier Wholesale', N'Peter Smith', N'Coordinator', N'+1-202-555-0125', N'799 Lake Ave', N'Seattle', N'USA', GETDATE(), N'Seeder'),
+    (N'Vertex Global', N'Irina Petrova', N'Buyer', N'+49-30-555-0126', N'22 Tiergarten', N'Berlin', N'Germany', GETDATE(), N'Seeder'),
+    (N'Pacific Hub', N'Yuki Tanaka', N'Partner', N'+81-3-555-0127', N'3-2-1 Ginza', N'Tokyo', N'Japan', GETDATE(), N'Seeder'),
+    (N'GreenField', N'Emma Brown', N'Executive', N'+1-202-555-0128', N'900 Meadow Ln', N'Denver', N'USA', GETDATE(), N'Seeder'),
+    (N'Asterix Supply', N'Jose Perez', N'Lead Buyer', N'+34-91-555-0129', N'Gran Via 12', N'Madrid', N'Spain', GETDATE(), N'Seeder'),
+    (N'Polar Trading', N'Martin Olsen', N'Logistics', N'+47-21-555-0130', N'Harbor 5', N'Oslo', N'Norway', GETDATE(), N'Seeder');
+END
+GO
+
+/* =========================
+   3) ROLES (4)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Roles)
+BEGIN
+    INSERT INTO dbo.Roles (RoleName)
+    VALUES (N'Admin'), (N'Manager'), (N'QA'), (N'User');
+END
+GO
+
+/* =========================
+   4) USERS (6)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Users)
+BEGIN
+    -- Mapear algunos usuarios a roles existentes (por nombre)
+    DECLARE @RoleAdmin INT  = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'Admin');
+    DECLARE @RoleMgr   INT  = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'Manager');
+    DECLARE @RoleQA    INT  = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'QA');
+    DECLARE @RoleUser  INT  = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'User');
+
+    INSERT INTO dbo.Users
+    (Username, Email, PasswordHash, CreatedAt, IsActive, LastModified, ModifiedBy, RoleID)
+    VALUES
+    (N'andrey',  N'andrey@example.com',  N'hashed_pw_1', GETDATE(), 1, GETDATE(), N'Seeder', @RoleQA),
+    (N'admin',   N'admin@example.com',   N'hashed_pw_2', GETDATE(), 1, GETDATE(), N'Seeder', @RoleAdmin),
+    (N'manager', N'manager@example.com', N'hashed_pw_3', GETDATE(), 1, GETDATE(), N'Seeder', @RoleMgr),
+    (N'alice',   N'alice@example.com',   N'hashed_pw_4', GETDATE(), 1, GETDATE(), N'Seeder', @RoleUser),
+    (N'bob',     N'bob@example.com',     N'hashed_pw_5', GETDATE(), 1, GETDATE(), N'Seeder', @RoleUser),
+    (N'qauser',  N'qauser@example.com',  N'hashed_pw_6', GETDATE(), 1, GETDATE(), N'Seeder', @RoleQA);
+END
+GO
+
+/* =========================
+   5) USERROLES (opcional; HasNoKey)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.UserRoles)
+BEGIN
+    DECLARE @U_Admin INT = (SELECT TOP 1 UserID FROM dbo.Users WHERE Username = N'admin');
+    DECLARE @U_Andrey INT = (SELECT TOP 1 UserID FROM dbo.Users WHERE Username = N'andrey');
+    DECLARE @U_Manager INT = (SELECT TOP 1 UserID FROM dbo.Users WHERE Username = N'manager');
+    DECLARE @R_Admin INT = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'Admin');
+    DECLARE @R_QA INT = (SELECT TOP 1 RoleID FROM dbo.Roles WHERE RoleName = N'QA');
+
+    -- Insertar como NUMERIC(18,0) (implícita conversión desde INT)
+    INSERT INTO dbo.UserRoles (Id, RoldID, UserID)
+    VALUES
+    (CAST(1 AS NUMERIC(18,0)), CAST(@R_Admin AS NUMERIC(18,0)), CAST(@U_Admin AS NUMERIC(18,0))),
+    (CAST(2 AS NUMERIC(18,0)), CAST(@R_QA    AS NUMERIC(18,0)), CAST(@U_Andrey AS NUMERIC(18,0))),
+    (CAST(3 AS NUMERIC(18,0)), CAST(@R_QA    AS NUMERIC(18,0)), CAST(@U_Manager AS NUMERIC(18,0)));
+END
+GO
+
+/* =========================
+   6) COMPONENTS (8)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Components)
+BEGIN
+    INSERT INTO dbo.Components ([name], [content])
+    VALUES
+    (N'Header',       N'Primary header component'),
+    (N'Footer',       N'Footer with links'),
+    (N'Navbar',       N'Responsive navigation bar'),
+    (N'Card',         N'Generic card layout'),
+    (N'Carousel',     N'Image carousel'),
+    (N'Badge',        N'Status badge'),
+    (N'Alert',        N'Alert banner'),
+    (N'ProductTile',  N'Compact product tile');
+END
+GO
+
+/* =========================
+   7) INVENTORIES (50)
+   ========================= */
+IF NOT EXISTS (SELECT 1 FROM dbo.Inventories)
+BEGIN
+    DECLARE @i INT = 1;
+    WHILE @i <= 50
+    BEGIN
+        INSERT INTO dbo.Inventories (UnitPrice, UnitsInStock, LastUpdated, DateAdded, ModifiedBy)
+        VALUES
+        (
+            CAST(ROUND( (RAND(CHECKSUM(NEWID())) * 480.0) + 20.0, 2) AS DECIMAL(10,2)), -- 20.00..500.00
+            CAST(RAND(CHECKSUM(NEWID())) * 200 AS INT),                                  -- 0..199
+            GETDATE(),
+            GETDATE(),
+            N'Seeder'
+        );
+        SET @i += 1;
+    END
+END
+GO
+
+/* =========================
+   8) PRODUCTS (50)  -> con FK a Category/Supplier/Inventory
+   ========================= */
+-- Solo insertar si aún no hay productos
+IF NOT EXISTS (SELECT 1 FROM dbo.Products)
+BEGIN
+    ;WITH inv AS
+    (
+        SELECT TOP (50)
+               InventoryID,
+               ROW_NUMBER() OVER (ORDER BY InventoryID) AS rn
+        FROM dbo.Inventories
+        ORDER BY InventoryID
+    )
+    INSERT INTO dbo.Products
+    (ProductName, [Description], Rating, CategoryID, SupplierID, InventoryID, LastModified, ModifiedBy)
+    SELECT
+        CONCAT(N'Sample Product ', inv.rn)                                       AS ProductName,
+        CONCAT(N'Description for sample product #', inv.rn, N'.')                AS [Description],
+        CAST(ROUND((RAND(CHECKSUM(NEWID())) * 5.0), 2) AS DECIMAL(3,2))          AS Rating,
+        c.CategoryID,
+        s.SupplierID,
+        inv.InventoryID,
+        GETDATE(),
+        N'SeederScript'
+    FROM inv
+    CROSS APPLY (SELECT TOP 1 CategoryID FROM dbo.Categories ORDER BY NEWID()) c
+    CROSS APPLY (SELECT TOP 1 SupplierID FROM dbo.Suppliers  ORDER BY NEWID()) s;
+END
+GO

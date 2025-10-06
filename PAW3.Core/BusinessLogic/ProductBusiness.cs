@@ -36,9 +36,25 @@ public class ProductBusiness(IRepositoryProduct repositoryProduct) : IProductBus
     /// </inheritdoc>
     public async Task<bool> SaveProductAsync(Product product)
     {
-        // que tengan mas de 5 quantity
-        // sabado o domingo solo puedo salvar de 8 a 12
-        return await repositoryProduct.UpdateAsync(product);
+        var entity = await repositoryProduct.FindAsync(product.ProductId);
+
+        if (entity == null)
+        {
+            return await repositoryProduct.CreateAsync(product);
+        }
+        else
+        {
+            entity.ProductName = product.ProductName;
+            entity.InventoryId = product.InventoryId;
+            entity.SupplierId = product.SupplierId;
+            entity.Description = product.Description;
+            entity.Rating = product.Rating;
+            entity.CategoryId = product.CategoryId;
+            entity.LastModified = product.LastModified ?? DateTime.UtcNow;
+            entity.ModifiedBy = product.ModifiedBy;
+
+            return await repositoryProduct.UpdateAsync(entity);
+        }
     }
 
     /// </inheritdoc>
@@ -56,4 +72,3 @@ public class ProductBusiness(IRepositoryProduct repositoryProduct) : IProductBus
             : [await repositoryProduct.FindAsync((int)id)];
     }
 }
-

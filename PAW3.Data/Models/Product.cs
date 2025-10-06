@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PAW3.Data.Models;
 
@@ -23,9 +24,9 @@ public partial class Product
 
     public string? ModifiedBy { get; set; }
 
-    public virtual Category? Category { get; set; }
+    [JsonIgnore] public virtual Category? Category { get; set; }
 
-    public virtual Inventory? Inventory { get; set; }
+    [JsonIgnore] public virtual Inventory? Inventory { get; set; }
 
-    public virtual Supplier? Supplier { get; set; }
+    [JsonIgnore] public virtual Supplier? Supplier { get; set; }
 }

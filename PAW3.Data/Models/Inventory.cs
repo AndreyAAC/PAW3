@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PAW3.Data.Models;
 
@@ -19,5 +20,5 @@ public partial class Inventory
 
     public string? ModifiedBy { get; set; }
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    [JsonIgnore] public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }
