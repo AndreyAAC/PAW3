@@ -1,0 +1,9 @@
+﻿@PAW3.MinimalApis_HostAddress = https://localhost:7206
+
+POST {{PAW3.MinimalApis_HostAddress}}/productitems
+Content-Type: application/json
+
+{
+  "name": "walk dog",
+  "isComplete": true
+}

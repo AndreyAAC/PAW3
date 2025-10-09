@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAW3.Mvc", "PAW3.Mvc\PAW3.M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAW3.Architecture", "PAW3.Architecture\PAW3.Architecture.csproj", "{EAC3FC5D-A309-4A9E-A79E-170A20F32A75}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAW3.MinimalApis", "PAW3.MinimalApis\PAW3.MinimalApis.csproj", "{80AAB798-FF55-4ABD-A3EA-2B8167245A94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{EAC3FC5D-A309-4A9E-A79E-170A20F32A75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EAC3FC5D-A309-4A9E-A79E-170A20F32A75}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EAC3FC5D-A309-4A9E-A79E-170A20F32A75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80AAB798-FF55-4ABD-A3EA-2B8167245A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80AAB798-FF55-4ABD-A3EA-2B8167245A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80AAB798-FF55-4ABD-A3EA-2B8167245A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80AAB798-FF55-4ABD-A3EA-2B8167245A94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
