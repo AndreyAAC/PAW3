@@ -1,3 +1,4 @@
+using System.IO;
 using PAW3.Architecture;
 using PAW3.Models.DTOs;
 using PAW3.Mvc.ServiceLocator;
@@ -7,7 +8,14 @@ using PAW3.ServiceLocator.Services.Contracts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Agrega configuracion externa (appsettings de PAW3.ServiceLocator)
+var serviceLocatorSettingsPath = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, "..", "PAW3.ServiceLocator", "appsettings.json")
+);
+// optional:false => si no existe, que falle para enterarte
+builder.Configuration.AddJsonFile(serviceLocatorSettingsPath, optional: false, reloadOnChange: true);
+
+// 2) Servicios MVC y dependencias
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IRestProvider, RestProvider>();
 builder.Services.AddScoped<IDogDataService, DogDataService>();
@@ -18,11 +26,10 @@ builder.Services.AddScoped<IService<ProductDTO>, ProductService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 3) Pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -30,7 +37,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
