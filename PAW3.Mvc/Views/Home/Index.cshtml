@@ -18,17 +18,17 @@
             <th>LastModified</th>
         </tr>
     </thead>
-    <tbody>        
+    <tbody>
         @foreach (var item in Model.Products)
         {
             <tr>
                 <td>@item.ProductId</td>
                 <td>@item.ProductName</td>
-                <td>@item.Description</td>            
+                <td>@item.Description</td>
                 <td>@item.Rating</td>
                 <td>@item.LastModified</td>
             </tr>
-        }        
+        }
     </tbody>
 </table>
 
@@ -36,10 +36,12 @@
     @foreach (var item in Model.Items)
     {
         var text = evalItem(@item);
-        if (doWeKnowHim(item)){ 
+        if (doWeKnowHim(item))
+        {
             <li>@item - @text!!!</li>
         }
-        else{
+        else
+        {
             <li>@item</li>
         }
     }

@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "PAW3.Api\\PAW3.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "PAW3.ServiceLocator\\PAW3.ServiceLocator.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "PAW3.Mvc\\PAW3.Mvc.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "PAW3.MinimalApis\\PAW3.MinimalApis.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
