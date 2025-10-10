@@ -15,18 +15,19 @@ var serviceLocatorSettingsPath = Path.GetFullPath(
 // optional:false => si no existe, que falle para enterarte
 builder.Configuration.AddJsonFile(serviceLocatorSettingsPath, optional: false, reloadOnChange: true);
 
-// 2) Servicios MVC y dependencias
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IRestProvider, RestProvider>();
 builder.Services.AddScoped<IDogDataService, DogDataService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IServiceLocatorService, ServiceLocatorService>();
 builder.Services.AddScoped<IServiceMapper, ServiceMapper>();
 builder.Services.AddScoped<IService<ProductDTO>, ProductService>();
+builder.Services.AddScoped<IService<CategoryDTO>, CategoryService>();
 
 var app = builder.Build();
 
-// 3) Pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
