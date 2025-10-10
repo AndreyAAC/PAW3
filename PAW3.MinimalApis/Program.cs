@@ -5,50 +5,73 @@ builder.Services.AddDbContext<ProductDb>(opt => opt.UseInMemoryDatabase("Product
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 var app = builder.Build();
 
-app.MapGet("/productitems", async (ProductDb db) =>
-    await db.Products.ToListAsync());
+RouteGroupBuilder productItems = app.MapGroup("/productitems");
 
-app.MapGet("/productitems/complete", async (ProductDb db) =>
-    await db.Products.Where(t => t.IsComplete).ToListAsync());
+productItems.MapGet("/", GetAllProducts);
+productItems.MapGet("/complete", GetCompleteProducts);
+productItems.MapGet("/{id}", GetProduct);
+productItems.MapPost("/", CreateProduct);
+productItems.MapPut("/{id}", UpdateProduct);
+productItems.MapDelete("/{id}", DeleteProduct);
 
-app.MapGet("/productitems/{id}", async (int id, ProductDb db) =>
-    await db.Products.FindAsync(id)
-        is Product product
-            ? Results.Ok(product)
-            : Results.NotFound());
+app.Run();
 
-app.MapPost("/productitems", async (Product product, ProductDb db) =>
+static async Task<IResult> GetAllProducts(ProductDb db)
 {
-    db.Products.Add(product);
+    return TypedResults.Ok(await db.Products.Select(x => new ProductItemDTO(x)).ToArrayAsync());
+}
+
+static async Task<IResult> GetCompleteProducts(ProductDb db)
+{
+    return TypedResults.Ok(await db.Products.Where(t => t.IsComplete).Select(x => new ProductItemDTO(x)).ToListAsync());
+}
+
+static async Task<IResult> GetProduct(int id, ProductDb db)
+{
+    return await db.Products.FindAsync(id)
+        is Product product
+            ? TypedResults.Ok(new ProductItemDTO(product))
+            : TypedResults.NotFound();
+}
+
+static async Task<IResult> CreateProduct(ProductItemDTO productItemDTO, ProductDb db)
+{
+    var productItem = new Product
+    {
+        IsComplete = productItemDTO.IsComplete,
+        Name = productItemDTO.Name
+    };
+
+    db.Products.Add(productItem);
     await db.SaveChangesAsync();
 
-    return Results.Created($"/productitems/{product.Id}", product);
-});
+    productItemDTO = new ProductItemDTO(productItem);
 
-app.MapPut("/productitems/{id}", async (int id, Product inputProduct, ProductDb db) =>
+    return TypedResults.Created($"/productitems/{productItem.Id}", productItemDTO);
+}
+
+static async Task<IResult> UpdateProduct(int id, ProductItemDTO productItemDTO, ProductDb db)
 {
     var product = await db.Products.FindAsync(id);
 
-    if (product is null) return Results.NotFound();
+    if (product is null) return TypedResults.NotFound();
 
-    product.Name = inputProduct.Name;
-    product.IsComplete = inputProduct.IsComplete;
+    product.Name = productItemDTO.Name;
+    product.IsComplete = productItemDTO.IsComplete;
 
     await db.SaveChangesAsync();
 
-    return Results.NoContent();
-});
+    return TypedResults.NoContent();
+}
 
-app.MapDelete("/productitems/{id}", async (int id, ProductDb db) =>
+static async Task<IResult> DeleteProduct(int id, ProductDb db)
 {
     if (await db.Products.FindAsync(id) is Product product)
     {
         db.Products.Remove(product);
         await db.SaveChangesAsync();
-        return Results.NoContent();
+        return TypedResults.NoContent();
     }
 
-    return Results.NotFound();
-});
-
-app.Run();
+    return TypedResults.NotFound();
+}
