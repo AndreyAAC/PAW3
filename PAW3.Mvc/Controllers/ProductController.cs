@@ -26,14 +26,32 @@ namespace PAW3.Mvc.Controllers
             _config = config;
             _rest = rest;
         }
-
-        // LIST
-        public async Task<IActionResult> Index()
+        // LIST (con busqueda por ID es opcional)
+        public async Task<IActionResult> Index(int? id)
         {
+            if (id.HasValue)
+            {
+                var idSearch = await GetProductByIdAsync(id.Value);
+                var list = idSearch is null ? Enumerable.Empty<ProductDTO>() : new[] { idSearch };
+
+                var vmSearch = new HomeViewModel
+                {
+                    Title = "Product Page",
+                    Products = list
+                };
+
+                if (idSearch is null)
+                    ViewBag.Info = $"No se encontró el ProductId {id.Value}.";
+
+                return View("~/Views/Home/Product.cshtml", vmSearch);
+            }
+
+            // Sin filtro: lista completa
             var products = await _serviceLocator.GetDataAsync<ProductDTO>("product");
             var vm = new HomeViewModel { Title = "Product Page", Products = products };
             return View("~/Views/Home/Product.cshtml", vm);
         }
+
 
         // CREATE (GET) - Formulario vacío con defaults
         [HttpGet]
