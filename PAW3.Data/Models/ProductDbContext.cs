@@ -72,7 +72,7 @@ public partial class ProductDbContext : DbContext
         {
             entity.HasKey(e => e.InventoryId).HasName("PK__Inventor__F5FDE6D3B5E07827");
 
-            entity.ToTable("Inventory");
+            entity.ToTable("Inventories");
 
             entity.Property(e => e.InventoryId).HasColumnName("InventoryID");
             entity.Property(e => e.DateAdded).HasColumnType("datetime");

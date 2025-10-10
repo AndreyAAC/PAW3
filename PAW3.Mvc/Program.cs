@@ -25,6 +25,9 @@ builder.Services.AddScoped<IServiceLocatorService, ServiceLocatorService>();
 builder.Services.AddScoped<IServiceMapper, ServiceMapper>();
 builder.Services.AddScoped<IService<ProductDTO>, ProductService>();
 builder.Services.AddScoped<IService<CategoryDTO>, CategoryService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IService<InventoryDTO>, InventoryService>();
+
 
 var app = builder.Build();
 

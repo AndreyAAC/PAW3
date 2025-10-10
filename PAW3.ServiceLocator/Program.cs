@@ -17,8 +17,10 @@ builder.Services.AddScoped<IDogDataService, DogDataService>();
 builder.Services.AddScoped<ITempDataService, TempDataService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IService<ProductDTO>, ProductService>();
 builder.Services.AddScoped<IService<CategoryDTO>, CategoryService>();
+builder.Services.AddScoped<IService<InventoryDTO>, InventoryService>();
 builder.Services.AddScoped<IServiceMapper, ServiceMapper>();
 
 

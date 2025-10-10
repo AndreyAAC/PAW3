@@ -14,6 +14,8 @@ builder.Services.AddScoped<IProductBusiness, ProductBusiness>();
 builder.Services.AddScoped<IRepositoryProduct, RepositoryProduct>();
 builder.Services.AddScoped<ICategoryBusiness, CategoryBusiness>();
 builder.Services.AddScoped<IRepositoryCategory, RepositoryCategory>();
+builder.Services.AddScoped<IInventoryBusiness, InventoryBusiness>();
+builder.Services.AddScoped<IRepositoryInventory, RepositoryInventory>();
 
 var app = builder.Build();
 
