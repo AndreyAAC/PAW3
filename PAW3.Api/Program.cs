@@ -18,6 +18,8 @@ builder.Services.AddScoped<IInventoryBusiness, InventoryBusiness>();
 builder.Services.AddScoped<IRepositoryInventory, RepositoryInventory>();
 builder.Services.AddScoped<IComponentBusiness, ComponentBusiness>();
 builder.Services.AddScoped<IRepositoryComponent, RepositoryComponent>();
+builder.Services.AddScoped<IUserBusiness, UserBusiness>();
+builder.Services.AddScoped<IRepositoryUser, RepositoryUser>();
 
 var app = builder.Build();
 

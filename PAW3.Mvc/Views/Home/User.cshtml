@@ -1,0 +1,68 @@
+﻿@model IEnumerable<PAW3.Models.DTOs.UserDTO>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="display-6 m-0">Usuarios</h1>
+
+        <form asp-controller="User" asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+            <input type="number" class="form-control" name="id" min="1" placeholder="Buscar por ID..." style="max-width:220px;" />
+            <button type="submit" class="btn btn-outline-light">Buscar</button>
+            <a asp-controller="User" asp-action="Index" class="btn btn-secondary">Limpiar</a>
+        </form>
+
+        <a class="btn btn-success" asp-controller="User" asp-action="Create">Crear Nuevo</a>
+    </div>
+
+    @if (ViewBag.Info != null)
+    {
+        <div class="alert alert-info">@ViewBag.Info</div>
+    }
+
+    <table class="table table-dark table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>IsActive</th>
+                <th>RoleId</th>
+                <th>CreatedAt</th>
+                <th>LastModified</th>
+                <th style="width:180px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.UserId</td>
+                        <td>@item.Username</td>
+                        <td>@item.Email</td>
+                        <td>@(item.IsActive == true ? "Sí" : "No")</td>
+                        <td>@item.RoleId</td>
+                        <td>@item.CreatedAt</td>
+                        <td>@item.LastModified</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary me-2"
+                               asp-controller="User" asp-action="Update" asp-route-id="@item.UserId">Actualizar</a>
+                            <form class="d-inline" method="post"
+                                  asp-controller="User" asp-action="Delete" asp-route-id="@item.UserId"
+                                  onsubmit="return confirm('¿Seguro que deseas borrar el usuario @item.UserId?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger">Borrar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="8" class="text-center">No hay usuarios.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
