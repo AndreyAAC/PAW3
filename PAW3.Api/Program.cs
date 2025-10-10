@@ -20,6 +20,8 @@ builder.Services.AddScoped<IComponentBusiness, ComponentBusiness>();
 builder.Services.AddScoped<IRepositoryComponent, RepositoryComponent>();
 builder.Services.AddScoped<IUserBusiness, UserBusiness>();
 builder.Services.AddScoped<IRepositoryUser, RepositoryUser>();
+builder.Services.AddScoped<IRoleBusiness, RoleBusiness>();
+builder.Services.AddScoped<IRepositoryRole, RepositoryRole>();
 
 var app = builder.Build();
 
