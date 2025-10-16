@@ -14,8 +14,6 @@ public partial class Inventory
 
     public DateTime? LastUpdated { get; set; }
 
-    public int? ProductId { get; set; }
-
     public DateTime? DateAdded { get; set; }
 
     public string? ModifiedBy { get; set; }

@@ -1,0 +1,43 @@
+﻿@model PAW3.Models.DTOs.CategoryDTO
+@{
+    ViewData["Title"] = "Crear Categoría";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Crear nueva categoría</h2>
+
+    <form asp-controller="Category" asp-action="Create" method="post" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label for="CategoryName" class="form-label">Nombre de la categoría</label>
+            <input asp-for="CategoryName" class="form-control" id="CategoryName" required />
+            <span asp-validation-for="CategoryName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label for="Description" class="form-label">Descripción</label>
+            <textarea asp-for="Description" class="form-control" id="Description"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="LastModified" class="form-label">Última Modificación</label>
+            <input asp-for="LastModified" type="datetime-local" class="form-control" id="LastModified"
+                   value="@(((Model.LastModified ?? DateTime.UtcNow).ToString("yyyy-MM-ddTHH\\:mm")))" />
+        </div>
+
+        <div class="mb-3">
+            <label for="ModifiedBy" class="form-label">Modificado por</label>
+            <input asp-for="ModifiedBy" class="form-control" id="ModifiedBy" value="Andrey" />
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a class="btn btn-secondary" asp-controller="Category" asp-action="Index">Cancelar</a>
+            <button type="submit" class="btn btn-success">Crear Categoría</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

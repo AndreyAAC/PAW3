@@ -24,6 +24,7 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
+<<<<<<< HEAD
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -48,6 +49,54 @@ products.MapGet("/", async (ProductDbContext db) =>
 
 // GET by id
 products.MapGet("/{id:int}", async Task<Results<Ok<ProductDTO>, NotFound>> (int id, ProductDbContext db) =>
+=======
+RouteGroupBuilder productItems = app.MapGroup("/productitems");
+
+productItems.MapGet("/", GetAllProducts);
+productItems.MapGet("/complete", GetCompleteProducts);
+productItems.MapGet("/{id}", GetProduct);
+productItems.MapPost("/", CreateProduct);
+productItems.MapPut("/{id}", UpdateProduct);
+productItems.MapDelete("/{id}", DeleteProduct);
+
+app.Run();
+
+static async Task<IResult> GetAllProducts(ProductDb db)
+{
+    return TypedResults.Ok(await db.Products.Select(x => new ProductItemDTO(x)).ToArrayAsync());
+}
+
+static async Task<IResult> GetCompleteProducts(ProductDb db)
+{
+    return TypedResults.Ok(await db.Products.Where(t => t.IsComplete).Select(x => new ProductItemDTO(x)).ToListAsync());
+}
+
+static async Task<IResult> GetProduct(int id, ProductDb db)
+{
+    return await db.Products.FindAsync(id)
+        is Product product
+            ? TypedResults.Ok(new ProductItemDTO(product))
+            : TypedResults.NotFound();
+}
+
+static async Task<IResult> CreateProduct(ProductItemDTO productItemDTO, ProductDb db)
+{
+    var productItem = new Product
+    {
+        IsComplete = productItemDTO.IsComplete,
+        Name = productItemDTO.Name
+    };
+
+    db.Products.Add(productItem);
+    await db.SaveChangesAsync();
+
+    productItemDTO = new ProductItemDTO(productItem);
+
+    return TypedResults.Created($"/productitems/{productItem.Id}", productItemDTO);
+}
+
+static async Task<IResult> UpdateProduct(int id, ProductItemDTO productItemDTO, ProductDb db)
+>>>>>>> main
 {
     var dto = await db.Products
         .AsNoTracking()
@@ -55,12 +104,26 @@ products.MapGet("/{id:int}", async Task<Results<Ok<ProductDTO>, NotFound>> (int 
         .Select(ProductMap.ConvertirDto)
         .FirstOrDefaultAsync();
 
+<<<<<<< HEAD
     if (dto is null) return TypedResults.NotFound();
     return TypedResults.Ok(dto);
 });
 
 // POST
 products.MapPost("/", async Task<Results<Created<ProductDTO>, BadRequest<string>>> (ProductDbContext db, ProductDTO dto) =>
+=======
+    if (product is null) return TypedResults.NotFound();
+
+    product.Name = productItemDTO.Name;
+    product.IsComplete = productItemDTO.IsComplete;
+
+    await db.SaveChangesAsync();
+
+    return TypedResults.NoContent();
+}
+
+static async Task<IResult> DeleteProduct(int id, ProductDb db)
+>>>>>>> main
 {
     if (string.IsNullOrWhiteSpace(dto.ProductName))
         return TypedResults.BadRequest("productName is required.");
@@ -108,6 +171,7 @@ internal static class ProductMap
     // Traducible por EF en .Select(), hace los Query en SQL
     public static readonly Expression<Func<Product, ProductDTO>> ConvertirDto = p => new ProductDTO
     {
+<<<<<<< HEAD
         ProductId = p.ProductId,
         ProductName = p.ProductName,
         InventoryId = p.InventoryId,
@@ -145,4 +209,12 @@ internal static class ProductMap
         target.ModifiedBy = src.ModifiedBy;
         target.LastModified = DateTime.UtcNow;
     }
+=======
+        db.Products.Remove(product);
+        await db.SaveChangesAsync();
+        return TypedResults.NoContent();
+    }
+
+    return TypedResults.NotFound();
+>>>>>>> main
 }

@@ -4,6 +4,29 @@ POST {{PAW3.MinimalApis_HostAddress}}/productitems
 Content-Type: application/json
 
 {
-  "name": "walk dog",
+  "name": "testing",
   "isComplete": true
 }
+###
+
+GET {{PAW3.MinimalApis_HostAddress}}/productitems
+
+###
+
+@id=1
+GET {{PAW3.MinimalApis_HostAddress}}/productitems/{{id}}
+
+###
+
+PUT {{PAW3.MinimalApis_HostAddress}}/productitems/1
+Content-Type: application/json
+
+{
+  "name": "feed fish",
+  "isComplete": false
+}
+
+###
+DELETE {{PAW3.MinimalApis_HostAddress}}/productitems/1
+
+###

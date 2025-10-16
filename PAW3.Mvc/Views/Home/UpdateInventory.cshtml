@@ -1,0 +1,51 @@
+﻿@model PAW3.Models.DTOs.InventoryDTO
+@{
+    ViewData["Title"] = "Actualizar Inventario";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Actualizar Inventario (@Model.InventoryId)</h2>
+
+    <form asp-controller="Inventory" asp-action="Update" method="post" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="InventoryId" />
+
+        <div class="mb-3">
+            <label for="UnitPrice" class="form-label">Unit Price</label>
+            <input asp-for="UnitPrice" type="number" step="0.01" class="form-control" id="UnitPrice" />
+        </div>
+
+        <div class="mb-3">
+            <label for="UnitsInStock" class="form-label">Units In Stock</label>
+            <input asp-for="UnitsInStock" type="number" class="form-control" id="UnitsInStock" />
+        </div>
+
+        <div class="mb-3">
+            <label for="DateAdded" class="form-label">Date Added</label>
+            <input asp-for="DateAdded" type="datetime-local" class="form-control" id="DateAdded"
+                   value="@(((Model.DateAdded ?? DateTime.UtcNow).ToString("yyyy-MM-ddTHH\\:mm")))" />
+        </div>
+
+        <div class="mb-3">
+            <label for="LastUpdated" class="form-label">Last Updated</label>
+            <input asp-for="LastUpdated" type="datetime-local" class="form-control" id="LastUpdated"
+                   value="@(((Model.LastUpdated ?? DateTime.UtcNow).ToString("yyyy-MM-ddTHH\\:mm")))" />
+        </div>
+
+        <div class="mb-3">
+            <label for="ModifiedBy" class="form-label">Modificado por</label>
+            <input asp-for="ModifiedBy" class="form-control" id="ModifiedBy"
+                   value="@(string.IsNullOrWhiteSpace(Model.ModifiedBy) ? "Andrey" : Model.ModifiedBy)" />
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a class="btn btn-secondary" asp-controller="Inventory" asp-action="Index">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Actualizar Inventario</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
