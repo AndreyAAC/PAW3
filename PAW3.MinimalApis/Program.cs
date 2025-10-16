@@ -8,15 +8,16 @@ using PAW3.Models.DTOs;   // ProductDTO
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ProductDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionDB")));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// CORS para MVC
 builder.Services.AddCors(opt =>
 {
-    opt.AddPolicy("PAW3Client", policy => policy
+    opt.AddPolicy("PAW3Client", p => p
         .AllowAnyHeader()
         .AllowAnyMethod()
         .WithOrigins("https://localhost:7181"));
@@ -24,7 +25,6 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
-<<<<<<< HEAD
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -41,7 +41,7 @@ products.MapGet("/", async (ProductDbContext db) =>
 {
     var list = await db.Products
         .AsNoTracking()
-        .Select(ProductMap.ConvertirDto)
+        .Select(ProductMap.ToDto)   // ?? expresión estática traducible por EF
         .ToListAsync();
 
     return TypedResults.Ok(list);
@@ -49,81 +49,19 @@ products.MapGet("/", async (ProductDbContext db) =>
 
 // GET by id
 products.MapGet("/{id:int}", async Task<Results<Ok<ProductDTO>, NotFound>> (int id, ProductDbContext db) =>
-=======
-RouteGroupBuilder productItems = app.MapGroup("/productitems");
-
-productItems.MapGet("/", GetAllProducts);
-productItems.MapGet("/complete", GetCompleteProducts);
-productItems.MapGet("/{id}", GetProduct);
-productItems.MapPost("/", CreateProduct);
-productItems.MapPut("/{id}", UpdateProduct);
-productItems.MapDelete("/{id}", DeleteProduct);
-
-app.Run();
-
-static async Task<IResult> GetAllProducts(ProductDb db)
-{
-    return TypedResults.Ok(await db.Products.Select(x => new ProductItemDTO(x)).ToArrayAsync());
-}
-
-static async Task<IResult> GetCompleteProducts(ProductDb db)
-{
-    return TypedResults.Ok(await db.Products.Where(t => t.IsComplete).Select(x => new ProductItemDTO(x)).ToListAsync());
-}
-
-static async Task<IResult> GetProduct(int id, ProductDb db)
-{
-    return await db.Products.FindAsync(id)
-        is Product product
-            ? TypedResults.Ok(new ProductItemDTO(product))
-            : TypedResults.NotFound();
-}
-
-static async Task<IResult> CreateProduct(ProductItemDTO productItemDTO, ProductDb db)
-{
-    var productItem = new Product
-    {
-        IsComplete = productItemDTO.IsComplete,
-        Name = productItemDTO.Name
-    };
-
-    db.Products.Add(productItem);
-    await db.SaveChangesAsync();
-
-    productItemDTO = new ProductItemDTO(productItem);
-
-    return TypedResults.Created($"/productitems/{productItem.Id}", productItemDTO);
-}
-
-static async Task<IResult> UpdateProduct(int id, ProductItemDTO productItemDTO, ProductDb db)
->>>>>>> main
 {
     var dto = await db.Products
         .AsNoTracking()
         .Where(x => x.ProductId == id)
-        .Select(ProductMap.ConvertirDto)
+        .Select(ProductMap.ToDto)   // ??
         .FirstOrDefaultAsync();
 
-<<<<<<< HEAD
     if (dto is null) return TypedResults.NotFound();
     return TypedResults.Ok(dto);
 });
 
 // POST
 products.MapPost("/", async Task<Results<Created<ProductDTO>, BadRequest<string>>> (ProductDbContext db, ProductDTO dto) =>
-=======
-    if (product is null) return TypedResults.NotFound();
-
-    product.Name = productItemDTO.Name;
-    product.IsComplete = productItemDTO.IsComplete;
-
-    await db.SaveChangesAsync();
-
-    return TypedResults.NoContent();
-}
-
-static async Task<IResult> DeleteProduct(int id, ProductDb db)
->>>>>>> main
 {
     if (string.IsNullOrWhiteSpace(dto.ProductName))
         return TypedResults.BadRequest("productName is required.");
@@ -164,14 +102,11 @@ products.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (int id
 
 app.MapGet("/", () => "PAW3 Minimal API is running");
 app.Run();
-
-// Empiezan los Mappeos
 internal static class ProductMap
 {
-    // Traducible por EF en .Select(), hace los Query en SQL
-    public static readonly Expression<Func<Product, ProductDTO>> ConvertirDto = p => new ProductDTO
+    // Ttraduce por EF en .Select(), hace los queries en SQL
+    public static readonly Expression<Func<Product, ProductDTO>> ToDto = p => new ProductDTO
     {
-<<<<<<< HEAD
         ProductId = p.ProductId,
         ProductName = p.ProductName,
         InventoryId = p.InventoryId,
@@ -183,7 +118,7 @@ internal static class ProductMap
         ModifiedBy = p.ModifiedBy
     };
 
-    // Convierte Product a un DTO para poder utilizarse
+    // Convierte Product a ProductDTO
     public static ProductDTO FromEntity(Product p) => new ProductDTO
     {
         ProductId = p.ProductId,
@@ -197,7 +132,7 @@ internal static class ProductMap
         ModifiedBy = p.ModifiedBy
     };
 
-    // Hace las actualizaciones a la base de datos, donde target es la base de datos y src es lo ingresado por el usuario en la interfaz
+    // Hace cambios en la base de datos donde target es la BD y src es el input del user en la interfaz
     public static void AplicarDTO(Product target, ProductDTO src, bool isUpdate = false)
     {
         target.ProductName = src.ProductName;
@@ -209,12 +144,4 @@ internal static class ProductMap
         target.ModifiedBy = src.ModifiedBy;
         target.LastModified = DateTime.UtcNow;
     }
-=======
-        db.Products.Remove(product);
-        await db.SaveChangesAsync();
-        return TypedResults.NoContent();
-    }
-
-    return TypedResults.NotFound();
->>>>>>> main
 }
