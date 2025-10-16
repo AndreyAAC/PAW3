@@ -1,74 +1,83 @@
-﻿using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using PAW3.Data.Models;
-using PAW3.Data.Repositories;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using PAW3.Data.Models;    
+using PAW3.Data.Repositories; 
 
-namespace PAW3.Core.BusinessLogic;
-//anmdrey asdjioejhtqewh
-public interface IProductBusiness
+namespace PAW3.Core.BusinessLogic
 {
-    /// <summary>
-    /// Deletes the product associated with the product id.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<bool> DeleteProductAsync(int id );
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    Task<IEnumerable<Product>> GetProducts(int? id);
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="product"></param>
-    /// <returns></returns>
-    Task<bool> SaveProductAsync(Product product);
-}
-
-public class ProductBusiness(IRepositoryProduct repositoryProduct) : IProductBusiness
-{
-    /// </inheritdoc>
-    public async Task<bool> SaveProductAsync(Product product)
+    public interface IProductBusiness
     {
-        var entity = await repositoryProduct.FindAsync(product.ProductId);
-
-        if (entity == null)
-        {
-            return await repositoryProduct.CreateAsync(product);
-        }
-        else
-        {
-            entity.ProductName = product.ProductName;
-            entity.InventoryId = product.InventoryId;
-            entity.SupplierId = product.SupplierId;
-            entity.Description = product.Description;
-            entity.Rating = product.Rating;
-            entity.CategoryId = product.CategoryId;
-            entity.LastModified = product.LastModified ?? DateTime.UtcNow;
-            entity.ModifiedBy = product.ModifiedBy;
-
-            return await repositoryProduct.UpdateAsync(entity);
-        }
+        Task<bool> DeleteProductAsync(int id, CancellationToken ct = default);
+        Task<IEnumerable<Product>> GetProducts(int? id, CancellationToken ct = default);
+        Task<bool> SaveProductAsync(Product product, CancellationToken ct = default);
     }
 
-    /// </inheritdoc>
-    public async Task<bool> DeleteProductAsync(int id)
+    public class ProductBusiness : IProductBusiness
     {
-        var entity = await repositoryProduct.FindAsync(id);
-        return entity is null ? false : await repositoryProduct.DeleteAsync(entity);
-    }
+        private readonly IRepositoryProduct _repositoryProduct;
+        private readonly IUnitOfWork _uow;
 
-    /// </inheritdoc>
-    public async Task<IEnumerable<Product>> GetProducts(int? id)
-    {
-        return id == null
-            ? await repositoryProduct.ReadAsync()
-            : [await repositoryProduct.FindAsync((int)id)];
+        public ProductBusiness(IRepositoryProduct repositoryProduct, IUnitOfWork uow)
+        {
+            _repositoryProduct = repositoryProduct;
+            _uow = uow;
+        }
+
+        public async Task<bool> SaveProductAsync(Product product, CancellationToken ct = default)
+        {
+            // Si productId != 0 busca si es create o update
+            var entity = product.ProductId != 0
+                ? await _repositoryProduct.FindAsync(product.ProductId, ct)
+                : null;
+
+            if (entity is null)
+            {
+                // CREATE
+                product.LastModified = DateTime.UtcNow;
+                await _repositoryProduct.AddAsync(product, ct);
+            }
+            else
+            {
+                // UPDATE
+                entity.ProductName = product.ProductName;
+                entity.InventoryId = product.InventoryId;
+                entity.SupplierId = product.SupplierId;
+                entity.Description = product.Description;
+                entity.Rating = product.Rating;
+                entity.CategoryId = product.CategoryId;
+                entity.ModifiedBy = product.ModifiedBy;
+                entity.LastModified = DateTime.UtcNow;
+
+                _repositoryProduct.Update(entity);
+            }
+
+            await _uow.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<bool> DeleteProductAsync(int id, CancellationToken ct = default)
+        {
+            var entity = await _repositoryProduct.FindAsync(id, ct);
+            if (entity is null) return false;
+
+            _repositoryProduct.Remove(entity);
+            await _uow.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<IEnumerable<Product>> GetProducts(int? id, CancellationToken ct = default)
+        {
+            if (id is null)
+            {
+                // Lista completa
+                return await _repositoryProduct.ReadAsync(null, ct);
+            }
+
+            var one = await _repositoryProduct.FindAsync(id.Value, ct);
+            return one is null ? Enumerable.Empty<Product>() : new[] { one };
+        }
     }
 }
