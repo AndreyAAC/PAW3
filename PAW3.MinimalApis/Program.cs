@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using PAW3.Core.Services;
+using PAW3.Data.Models;
+using PAW3.Data.Repositories;
+using PAW3.Models.DTOs;
 using System.Linq.Expressions;
-
-using PAW3.Data.Models;   // DbContext + Product
-using PAW3.Models.DTOs;   // ProductDTO
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,10 +15,15 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS para MVC
+// Patron de Repository / Unit of Work / Service Layer
+builder.Services.AddScoped<IRepositoryProduct, RepositoryProduct>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+
 builder.Services.AddCors(opt =>
 {
-    opt.AddPolicy("PAW3Client", p => p
+    opt.AddPolicy("PAW3Client", policy => policy
         .AllowAnyHeader()
         .AllowAnyMethod()
         .WithOrigins("https://localhost:7181"));
@@ -37,75 +43,52 @@ app.UseCors("PAW3Client");
 var products = app.MapGroup("/api/products").WithTags("Products");
 
 // GET all
-products.MapGet("/", async (ProductDbContext db) =>
+products.MapGet("/", async (IProductService svc, string? q) =>
 {
-    var list = await db.Products
-        .AsNoTracking()
-        .Select(ProductMap.ToDto)   // ?? expresión estática traducible por EF
-        .ToListAsync();
-
+    var list = await svc.ListAsync(q);
     return TypedResults.Ok(list);
 });
 
 // GET by id
-products.MapGet("/{id:int}", async Task<Results<Ok<ProductDTO>, NotFound>> (int id, ProductDbContext db) =>
+products.MapGet("/{id:int}", async Task<Results<Ok<ProductDTO>, NotFound>> (IProductService svc, int id) =>
 {
-    var dto = await db.Products
-        .AsNoTracking()
-        .Where(x => x.ProductId == id)
-        .Select(ProductMap.ToDto)   // ??
-        .FirstOrDefaultAsync();
+    var dto = await svc.GetAsync(id);
 
     if (dto is null) return TypedResults.NotFound();
     return TypedResults.Ok(dto);
 });
 
 // POST
-products.MapPost("/", async Task<Results<Created<ProductDTO>, BadRequest<string>>> (ProductDbContext db, ProductDTO dto) =>
+products.MapPost("/", async Task<Results<Created<ProductDTO>, BadRequest<string>>> (IProductService svc, ProductDTO dto) =>
 {
     if (string.IsNullOrWhiteSpace(dto.ProductName))
         return TypedResults.BadRequest("productName is required.");
 
-    var entity = new Product();
-    ProductMap.AplicarDTO(entity, dto, isUpdate: false);
-
-    db.Products.Add(entity);
-    await db.SaveChangesAsync();
-
-    var createdDto = ProductMap.FromEntity(entity);
-    return TypedResults.Created($"/api/products/{entity.ProductId}", createdDto);
+    var createdDto = await svc.CreateAsync(dto);
+    return TypedResults.Created($"/api/products/{createdDto.ProductId}", createdDto);
 });
 
 // PUT
-products.MapPut("/{id:int}", async Task<Results<NoContent, NotFound, BadRequest<string>>> (int id, ProductDbContext db, ProductDTO dto) =>
+products.MapPut("/{id:int}", async Task<Results<NoContent, NotFound, BadRequest<string>>> (IProductService svc, int id, ProductDTO dto) =>
 {
-    var entity = await db.Products.FirstOrDefaultAsync(x => x.ProductId == id);
-    if (entity is null) return TypedResults.NotFound();
-
-    ProductMap.AplicarDTO(entity, dto, isUpdate: true);
-    await db.SaveChangesAsync();
-
-    return TypedResults.NoContent();
+    var ok = await svc.UpdateAsync(id, dto);
+    return ok ? TypedResults.NoContent() : TypedResults.NotFound();
 });
 
 // DELETE
-products.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (int id, ProductDbContext db) =>
+products.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (IProductService svc, int id) =>
 {
-    var entity = await db.Products.FirstOrDefaultAsync(x => x.ProductId == id);
-    if (entity is null) return TypedResults.NotFound();
-
-    db.Products.Remove(entity);
-    await db.SaveChangesAsync();
-
-    return TypedResults.NoContent();
+    var ok = await svc.DeleteAsync(id);
+    return ok ? TypedResults.NoContent() : TypedResults.NotFound();
 });
 
 app.MapGet("/", () => "PAW3 Minimal API is running");
 app.Run();
+
 internal static class ProductMap
 {
-    // Ttraduce por EF en .Select(), hace los queries en SQL
-    public static readonly Expression<Func<Product, ProductDTO>> ToDto = p => new ProductDTO
+    // Traduce por EF en .Select(), hace los queries en SQL
+    public static readonly Expression<Func<Product, ProductDTO>> ConvertirDto = p => new ProductDTO
     {
         ProductId = p.ProductId,
         ProductName = p.ProductName,
